@@ -2,6 +2,7 @@ package wpa_cli
 
 import (
 	"fmt"
+
 	"github.com/ThomasRooney/gexpect"
 )
 

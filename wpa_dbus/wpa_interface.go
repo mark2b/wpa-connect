@@ -1,9 +1,10 @@
 package wpa_dbus
 
 import (
-	"../log"
 	"fmt"
+
 	"github.com/godbus/dbus"
+	"github.com/mark2b/wpa-connect/log"
 )
 
 type InterfaceWPA struct {

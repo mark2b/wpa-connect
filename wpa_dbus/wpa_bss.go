@@ -1,10 +1,11 @@
 package wpa_dbus
 
 import (
-	"../log"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/godbus/dbus"
+	"github.com/mark2b/wpa-connect/log"
 )
 
 type BSSWPA struct {

@@ -1,11 +1,12 @@
 package wpa_connect
 
 import (
-	"./log"
-	"./wpa_cli"
-	"./wpa_dbus"
 	"errors"
+
 	"github.com/godbus/dbus"
+	"github.com/mark2b/wpa-connect/log"
+	"github.com/mark2b/wpa-connect/wpa_cli"
+	"github.com/mark2b/wpa-connect/wpa_dbus"
 )
 
 type connectContext struct {
