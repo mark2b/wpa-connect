@@ -150,3 +150,7 @@ type wifiManager struct {
 	connectContext *connectContext
 	NetInterface   string
 }
+
+var (
+	WifiManager = &wifiManager{NetInterface: "wlan0"}
+)
