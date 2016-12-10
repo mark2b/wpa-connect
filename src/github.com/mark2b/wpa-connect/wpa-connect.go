@@ -5,9 +5,9 @@ import (
 
 	"fmt"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpaconnect/log"
-	"github.com/mark2b/wpaconnect/wpa_cli"
-	"github.com/mark2b/wpaconnect/wpa_dbus"
+	"github.com/mark2b/wpa-connect/log"
+	"github.com/mark2b/wpa-connect/wpa_cli"
+	"github.com/mark2b/wpa-connect/wpa_dbus"
 )
 
 func (self *connectManager) Connect(ssid string, password string) (e error) {
