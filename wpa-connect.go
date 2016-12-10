@@ -9,25 +9,18 @@ import (
 	"github.com/mark2b/wpa-connect/wpa_dbus"
 )
 
-type connectContext struct {
-	phaseWaitForScanDone           bool
-	phaseWaitForInterfaceConnected bool
-	scanDone                       chan bool
-	connectDone                    chan bool
-}
-
-func (self *wifiManager) Connect(ssid string, password string) (e error) {
+func (self *connectManager) Connect(ssid string, password string) (e error) {
 	self.connectContext = &connectContext{}
 	self.connectContext.scanDone = make(chan bool)
 	self.connectContext.connectDone = make(chan bool)
 	if wpa, err := wpa_dbus.NewWPA(); err == nil {
-		wpa.WaifForSignals(self.OnSignal)
+		wpa.WaifForSignals(self.onSignal)
 		wpa.AddSignalsObserver()
 		if wpa.ReadInterface(self.NetInterface); wpa.Error == nil {
 			iface := wpa.Interface
 			iface.AddSignalsObserver()
 			self.connectContext.phaseWaitForScanDone = true
-			if iface.Scan(); wpa.Error == nil {
+			if iface.Scan(); iface.Error == nil {
 				// Wait for scan done
 				<-self.connectContext.scanDone
 				if iface.ReadBSSList(); iface.Error == nil {
@@ -38,7 +31,7 @@ func (self *wifiManager) Connect(ssid string, password string) (e error) {
 							log.Log.Info(bss.SSID)
 							if ssid == bss.SSID {
 								bssFound = true
-								if err := self.ConnectToBSS(&bss, iface, password); err == nil {
+								if err := self.connectToBSS(&bss, iface, password); err == nil {
 									// Wait for connection
 									cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
 									if err := cli.SaveConfig(); err == nil {
@@ -76,7 +69,7 @@ func (self *wifiManager) Connect(ssid string, password string) (e error) {
 	return
 }
 
-func (self *wifiManager) ConnectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.InterfaceWPA, password string) (e error) {
+func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.InterfaceWPA, password string) (e error) {
 	addNetworkArgs := map[string]dbus.Variant{
 		"ssid": dbus.MakeVariant(bss.SSID),
 		"psk":  dbus.MakeVariant(password)}
@@ -98,7 +91,7 @@ func (self *wifiManager) ConnectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.Inte
 	return
 }
 
-func (self *wifiManager) OnSignal(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
+func (self *connectManager) onSignal(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	log.Log.Debug(signal.Name, signal.Path)
 	switch signal.Name {
 	case "fi.w1.wpa_supplicant1.Interface.BSSAdded":
@@ -114,7 +107,7 @@ func (self *wifiManager) OnSignal(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	}
 }
 
-func (self *wifiManager) processScanDone(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
+func (self *connectManager) processScanDone(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	log.Log.Debug("processScanDone")
 	if self.connectContext.phaseWaitForScanDone {
 		self.connectContext.phaseWaitForScanDone = false
@@ -122,7 +115,7 @@ func (self *wifiManager) processScanDone(wpa *wpa_dbus.WPA, signal *dbus.Signal)
 	}
 }
 
-func (self *wifiManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
+func (self *connectManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	log.Log.Debug("processInterfacePropertiesChanged")
 	log.Log.Debug("phaseWaitForInterfaceConnected", self.connectContext.phaseWaitForInterfaceConnected)
 	if self.connectContext.phaseWaitForInterfaceConnected {
@@ -146,11 +139,18 @@ func (self *wifiManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA, si
 	}
 }
 
-type wifiManager struct {
+type connectContext struct {
+	phaseWaitForScanDone           bool
+	phaseWaitForInterfaceConnected bool
+	scanDone                       chan bool
+	connectDone                    chan bool
+}
+
+type connectManager struct {
 	connectContext *connectContext
 	NetInterface   string
 }
 
 var (
-	WifiManager = &wifiManager{NetInterface: "wlan0"}
+	ConnectManager = &connectManager{NetInterface: "wlan0"}
 )
