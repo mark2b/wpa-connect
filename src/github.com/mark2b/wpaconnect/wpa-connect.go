@@ -1,12 +1,13 @@
-package wpa_connect
+package wpaconnect
 
 import (
 	"errors"
 
+	"fmt"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
-	"github.com/mark2b/wpa-connect/wpa_cli"
-	"github.com/mark2b/wpa-connect/wpa_dbus"
+	"github.com/mark2b/wpaconnect/log"
+	"github.com/mark2b/wpaconnect/wpa_cli"
+	"github.com/mark2b/wpaconnect/wpa_dbus"
 )
 
 func (self *connectManager) Connect(ssid string, password string) (e error) {
@@ -80,7 +81,11 @@ func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.I
 			connected := <-self.connectContext.connectDone
 			log.Log.Debug("Connected", connected)
 			if !connected {
-				e = errors.New("connection_failed")
+				if iface.ReadDisconnectReason(); iface.Error == nil {
+					e = errors.New(fmt.Sprintf("connection_failed, reason=%i", iface.DisconnectReason))
+				} else {
+					e = errors.New("connection_failed")
+				}
 			}
 		} else {
 			e = network.Error

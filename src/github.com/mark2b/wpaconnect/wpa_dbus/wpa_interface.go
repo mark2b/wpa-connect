@@ -4,24 +4,25 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
+	"github.com/mark2b/wpaconnect/log"
 )
 
 type InterfaceWPA struct {
-	WPA            *WPA
-	Object         dbus.BusObject
-	Networks       []NetworkWPA
-	BSSs           []BSSWPA
-	State          string
-	Scanning       bool
-	Ifname         string
-	CurrentBSS     *BSSWPA
-	TempBSS        *BSSWPA
-	CurrentNetwork *NetworkWPA
-	NewNetwork     *NetworkWPA
-	ScanInterval   int32
-	SignalChannel  chan *dbus.Signal
-	Error          error
+	WPA              *WPA
+	Object           dbus.BusObject
+	Networks         []NetworkWPA
+	BSSs             []BSSWPA
+	State            string
+	Scanning         bool
+	Ifname           string
+	CurrentBSS       *BSSWPA
+	TempBSS          *BSSWPA
+	CurrentNetwork   *NetworkWPA
+	NewNetwork       *NetworkWPA
+	ScanInterval     int32
+	DisconnectReason int32
+	SignalChannel    chan *dbus.Signal
+	Error error
 }
 
 func (self *InterfaceWPA) ReadNetworksList() *InterfaceWPA {
@@ -174,6 +175,17 @@ func (self *InterfaceWPA) ReadScanInterval() *InterfaceWPA {
 	if self.Error == nil {
 		if value, err := self.WPA.get("fi.w1.wpa_supplicant1.Interface.ScanInterval", self.Object); err == nil {
 			self.ScanInterval = value.(int32)
+		} else {
+			self.Error = err
+		}
+	}
+	return self
+}
+
+func (self *InterfaceWPA) ReadDisconnectReason() *InterfaceWPA {
+	if self.Error == nil {
+		if value, err := self.WPA.get("fi.w1.wpa_supplicant1.Interface.DisconnectReason", self.Object); err == nil {
+			self.DisconnectReason = value.(int32)
 		} else {
 			self.Error = err
 		}

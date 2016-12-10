@@ -1,12 +1,15 @@
 package main
 
 import (
-	wifi ".."
-	"os"
 	"fmt"
+	"os"
+
+	wifi "github.com/mark2b/wpaconnect"
+	"github.com/mark2b/wpaconnect/log"
 )
 
 func main() {
+	log.SetDebugMode()
 	args := os.Args[1:]
 	if len(args) < 2 {
 		fmt.Println("Insufficient arguments")
