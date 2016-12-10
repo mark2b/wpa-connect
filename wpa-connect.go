@@ -3,11 +3,11 @@ package wpaconnect
 import (
 	"errors"
 
+	"./internal/log"
+	"./internal/wpa_cli"
+	"./internal/wpa_dbus"
 	"fmt"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
-	"github.com/mark2b/wpa-connect/wpa_cli"
-	"github.com/mark2b/wpa-connect/wpa_dbus"
 )
 
 func (self *connectManager) Connect(ssid string, password string) (e error) {

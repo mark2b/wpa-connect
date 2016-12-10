@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"../log"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
 )
 
 type WPA struct {

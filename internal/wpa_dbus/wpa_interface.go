@@ -3,8 +3,8 @@ package wpa_dbus
 import (
 	"fmt"
 
+	"../log"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
 )
 
 type InterfaceWPA struct {
@@ -22,7 +22,7 @@ type InterfaceWPA struct {
 	ScanInterval     int32
 	DisconnectReason int32
 	SignalChannel    chan *dbus.Signal
-	Error error
+	Error            error
 }
 
 func (self *InterfaceWPA) ReadNetworksList() *InterfaceWPA {

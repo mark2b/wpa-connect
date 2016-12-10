@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"../log"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
 )
 
 type BSSWPA struct {

@@ -3,8 +3,8 @@ package wpa_dbus
 import (
 	"fmt"
 
+	"../log"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/log"
 )
 
 type NetworkWPA struct {

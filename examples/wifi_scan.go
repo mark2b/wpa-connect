@@ -1,14 +1,13 @@
 package main
 
 import (
-	wifi "github.com/mark2b/wpa-connect"
-	"github.com/mark2b/wpa-connect/log"
+	wifi ".."
 )
 
 func main() {
 	if bssList, err := wifi.ScanManager.Scan(); err == nil {
 		for _, bss := range bssList {
-			log.Log.Info(bss.SSID, bss.Signal, bss.KeyMgmt)
+			print(bss.SSID, bss.Signal, bss.KeyMgmt)
 		}
 	}
 }
