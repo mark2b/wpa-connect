@@ -3,7 +3,7 @@ package wpa_dbus
 import (
 	"fmt"
 
-	"../log"
+	"github.com/mark2b/wpa-connect/internal/log"
 	"github.com/godbus/dbus"
 )
 

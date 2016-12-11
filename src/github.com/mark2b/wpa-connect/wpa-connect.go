@@ -3,11 +3,11 @@ package wpaconnect
 import (
 	"errors"
 
-	"./internal/log"
-	"./internal/wpa_cli"
-	"./internal/wpa_dbus"
 	"fmt"
 	"github.com/godbus/dbus"
+	"github.com/mark2b/wpa-connect/internal/log"
+	"github.com/mark2b/wpa-connect/internal/wpa_cli"
+	"github.com/mark2b/wpa-connect/internal/wpa_dbus"
 	"net"
 	"time"
 )

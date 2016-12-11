@@ -1,7 +1,7 @@
 package main
 
 import (
-	wifi ".."
+	wifi "../"
 )
 
 func main() {

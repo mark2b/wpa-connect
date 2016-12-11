@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	wifi ".."
+	wifi "../"
 	"time"
 )
 
