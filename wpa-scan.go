@@ -16,7 +16,7 @@ func (self *scanManager) Scan() (bssList []BSS, e error) {
 			iface.AddSignalsObserver()
 			self.scanContext.phaseWaitForScanDone = true
 			if iface.Scan(); iface.Error == nil {
-				// Wait for scan done
+				// Wait for scan_example done
 				<-self.scanContext.scanDone
 				if iface.ReadBSSList(); iface.Error == nil {
 					for _, bss := range iface.BSSs {

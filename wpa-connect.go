@@ -30,7 +30,7 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 				self.context.error = errors.New("timeout")
 			}()
 			if iface.Scan(); iface.Error == nil {
-				// Wait for scan done
+				// Wait for scan_example done
 				if <-self.context.scanDone; self.context.error == nil {
 					if iface.ReadBSSList(); iface.Error == nil {
 						// Look for target BSS
