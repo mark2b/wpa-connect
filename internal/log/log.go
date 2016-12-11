@@ -1,4 +1,4 @@
-package log // import "wpa-connect/log"
+package log
 
 import (
 	"github.com/op/go-logging"
