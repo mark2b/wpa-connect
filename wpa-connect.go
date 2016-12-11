@@ -8,51 +8,63 @@ import (
 	"./internal/wpa_dbus"
 	"fmt"
 	"github.com/godbus/dbus"
+	"net"
+	"time"
 )
 
-func (self *connectManager) Connect(ssid string, password string) (e error) {
-	self.connectContext = &connectContext{}
-	self.connectContext.scanDone = make(chan bool)
-	self.connectContext.connectDone = make(chan bool)
+func (self *connectManager) Connect(ssid string, password string, timeout time.Duration) (connectionInfo ConnectionInfo, e error) {
+	self.deadTime = time.Now().Add(timeout)
+	self.context = &connectContext{}
+	self.context.scanDone = make(chan bool)
+	self.context.connectDone = make(chan bool)
 	if wpa, err := wpa_dbus.NewWPA(); err == nil {
 		wpa.WaifForSignals(self.onSignal)
 		wpa.AddSignalsObserver()
 		if wpa.ReadInterface(self.NetInterface); wpa.Error == nil {
 			iface := wpa.Interface
 			iface.AddSignalsObserver()
-			self.connectContext.phaseWaitForScanDone = true
+			self.context.phaseWaitForScanDone = true
+			go func() {
+				time.Sleep(self.deadTime.Sub(time.Now()))
+				self.context.scanDone <- false
+				self.context.error = errors.New("timeout")
+			}()
 			if iface.Scan(); iface.Error == nil {
 				// Wait for scan done
-				<-self.connectContext.scanDone
-				if iface.ReadBSSList(); iface.Error == nil {
-					// Look for target BSS
-					var bssFound = false
-					for _, bss := range iface.BSSs {
-						if bss.ReadSSID(); bss.Error == nil {
-							log.Log.Info(bss.SSID)
-							if ssid == bss.SSID {
-								bssFound = true
-								if err := self.connectToBSS(&bss, iface, password); err == nil {
-									// Wait for connection
-									cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
-									if err := cli.SaveConfig(); err == nil {
+				if <-self.context.scanDone; self.context.error == nil {
+					if iface.ReadBSSList(); iface.Error == nil {
+						// Look for target BSS
+						var bssFound = false
+						for _, bss := range iface.BSSs {
+							if bss.ReadSSID(); bss.Error == nil {
+								if ssid == bss.SSID {
+									bssFound = true
+									if err := self.connectToBSS(&bss, iface, password); err == nil {
+										// Wait for connection
+										cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
+										if err := cli.SaveConfig(); err == nil {
+											connectionInfo = ConnectionInfo{NetInterface: self.NetInterface, SSID: ssid,
+												IP4: self.context.ip4, IP6: self.context.ip6}
+										} else {
+											e = err
+										}
 									} else {
 										e = err
 									}
-								} else {
-									e = err
+									break
 								}
-								break
+							} else {
+								e = bss.Error
 							}
-						} else {
-							e = bss.Error
 						}
-					}
-					if !bssFound {
-						e = errors.New("ssid_not_found")
+						if !bssFound {
+							e = errors.New("ssid_not_found")
+						}
+					} else {
+						e = iface.Error
 					}
 				} else {
-					e = iface.Error
+					e = self.context.error
 				}
 			} else {
 				e = wpa.Error
@@ -66,7 +78,6 @@ func (self *connectManager) Connect(ssid string, password string) (e error) {
 	} else {
 		e = err
 	}
-	log.Log.Debug("Connect exit")
 	return
 }
 
@@ -76,16 +87,28 @@ func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.I
 		"psk":  dbus.MakeVariant(password)}
 	if iface.RemoveAllNetworks().AddNetwork(addNetworkArgs); iface.Error == nil {
 		network := iface.NewNetwork
-		self.connectContext.phaseWaitForInterfaceConnected = true
+		self.context.phaseWaitForInterfaceConnected = true
+		go func() {
+			time.Sleep(self.deadTime.Sub(time.Now()))
+			self.context.connectDone <- false
+			self.context.error = errors.New("timeout")
+		}()
 		if network.Select(); network.Error == nil {
-			connected := <-self.connectContext.connectDone
-			log.Log.Debug("Connected", connected)
-			if !connected {
-				if iface.ReadDisconnectReason(); iface.Error == nil {
-					e = errors.New(fmt.Sprintf("connection_failed, reason=%i", iface.DisconnectReason))
+			if connected := <-self.context.connectDone; self.context.error == nil {
+				if connected {
+					if err := self.readNetAddress(); err == nil {
+					} else {
+						e = err
+					}
 				} else {
-					e = errors.New("connection_failed")
+					if iface.ReadDisconnectReason(); iface.Error == nil {
+						e = errors.New(fmt.Sprintf("connection_failed, reason=%d", iface.DisconnectReason))
+					} else {
+						e = errors.New("connection_failed")
+					}
 				}
+			} else {
+				e = self.context.error
 			}
 		} else {
 			e = network.Error
@@ -112,30 +135,63 @@ func (self *connectManager) onSignal(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	}
 }
 
+func (self *connectManager) readNetAddress() (e error) {
+	if netIface, err := net.InterfaceByName(self.NetInterface); err == nil {
+		for time.Now().Before(self.deadTime) && !self.context.hasIP() {
+			if addrs, err := netIface.Addrs(); err == nil {
+				for _, addr := range addrs {
+					if ip, _, err := net.ParseCIDR(addr.String()); err == nil {
+						if self.context.ip4 == nil {
+							self.context.ip4 = ip.To4()
+							continue
+						}
+						if self.context.ip6 == nil {
+							self.context.ip6 = ip.To16()
+							continue
+						}
+					} else {
+						e = err
+						return
+					}
+				}
+			} else {
+				e = err
+			}
+			time.Sleep(time.Millisecond * 500)
+		}
+		if !self.context.hasIP() {
+			e = errors.New("address_not_allocated")
+		}
+	} else {
+		e = err
+	}
+	return
+}
+
 func (self *connectManager) processScanDone(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	log.Log.Debug("processScanDone")
-	if self.connectContext.phaseWaitForScanDone {
-		self.connectContext.phaseWaitForScanDone = false
-		self.connectContext.scanDone <- true
+	if self.context.phaseWaitForScanDone {
+		self.context.phaseWaitForScanDone = false
+		self.context.scanDone <- true
 	}
 }
 
 func (self *connectManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA, signal *dbus.Signal) {
 	log.Log.Debug("processInterfacePropertiesChanged")
-	log.Log.Debug("phaseWaitForInterfaceConnected", self.connectContext.phaseWaitForInterfaceConnected)
-	if self.connectContext.phaseWaitForInterfaceConnected {
+	log.Log.Debug("phaseWaitForInterfaceConnected", self.context.phaseWaitForInterfaceConnected)
+	if self.context.phaseWaitForInterfaceConnected {
 		if len(signal.Body) > 0 {
 			properties := signal.Body[0].(map[string]dbus.Variant)
 			if stateVariant, hasState := properties["State"]; hasState {
 				if state, ok := stateVariant.Value().(string); ok {
 					log.Log.Debug("State", state)
 					if state == "completed" {
-						self.connectContext.phaseWaitForInterfaceConnected = false
-						self.connectContext.connectDone <- true
+						self.context.phaseWaitForInterfaceConnected = false
+						self.context.connectDone <- true
 						return
 					} else if state == "disconnected" {
-						self.connectContext.phaseWaitForInterfaceConnected = false
-						self.connectContext.connectDone <- false
+						self.context.phaseWaitForInterfaceConnected = false
+						self.context.connectDone <- false
 						return
 					}
 				}
@@ -144,16 +200,31 @@ func (self *connectManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA,
 	}
 }
 
+func (self *connectContext) hasIP() bool {
+	return self.ip4 != nil && self.ip6 != nil
+}
+
+type ConnectionInfo struct {
+	NetInterface string
+	SSID         string
+	IP4          net.IP
+	IP6          net.IP
+}
+
 type connectContext struct {
 	phaseWaitForScanDone           bool
 	phaseWaitForInterfaceConnected bool
 	scanDone                       chan bool
 	connectDone                    chan bool
+	ip4                            net.IP
+	ip6                            net.IP
+	error                          error
 }
 
 type connectManager struct {
-	connectContext *connectContext
-	NetInterface   string
+	context      *connectContext
+	deadTime     time.Time
+	NetInterface string
 }
 
 var (

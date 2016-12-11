@@ -5,6 +5,7 @@ import (
 	"os"
 
 	wifi ".."
+	"time"
 )
 
 func main() {
@@ -16,8 +17,9 @@ func main() {
 	}
 	ssid := args[0]
 	password := args[1]
-	if err := wifi.ConnectManager.Connect(ssid, password); err == nil {
-		fmt.Println("Connected")
+	wifi.SetDebugMode()
+	if conn, err := wifi.ConnectManager.Connect(ssid, password, time.Second * 60); err == nil {
+		fmt.Println("Connected", conn.NetInterface, conn.SSID, conn.IP4.String(), conn.IP6.String())
 	} else {
 		fmt.Println(err)
 	}
