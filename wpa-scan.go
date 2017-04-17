@@ -10,7 +10,7 @@ func (self *scanManager) Scan() (bssList []BSS, e error) {
 	self.scanContext = &scanContext{}
 	self.scanContext.scanDone = make(chan bool)
 	if wpa, err := wpa_dbus.NewWPA(); err == nil {
-		wpa.WaifForSignals(self.onScanSignal)
+		wpa.WaitForSignals(self.onScanSignal)
 		if wpa.ReadInterface(self.NetInterface); wpa.Error == nil {
 			iface := wpa.Interface
 			iface.AddSignalsObserver()
@@ -34,7 +34,7 @@ func (self *scanManager) Scan() (bssList []BSS, e error) {
 		} else {
 			e = wpa.Error
 		}
-		wpa.StopWaifForSignals()
+		wpa.StopWaitForSignals()
 	} else {
 		e = err
 	}

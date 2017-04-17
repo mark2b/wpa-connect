@@ -69,8 +69,8 @@ func (self *WPA) get(name string, target dbus.BusObject) (value interface{}, e e
 	return
 }
 
-func (self *WPA) WaifForSignals(callBack func(*WPA, *dbus.Signal)) *WPA {
-	log.Log.Debug("WaifForSignals")
+func (self *WPA) WaitForSignals(callBack func(*WPA, *dbus.Signal)) *WPA {
+	log.Log.Debug("WaitForSignals")
 	self.SignalChannel = make(chan *dbus.Signal, 10)
 	self.Connection.Signal(self.SignalChannel)
 	go func() {
@@ -81,8 +81,8 @@ func (self *WPA) WaifForSignals(callBack func(*WPA, *dbus.Signal)) *WPA {
 	return self
 }
 
-func (self *WPA) StopWaifForSignals() *WPA {
-	log.Log.Debug("StopWaifForSignals")
+func (self *WPA) StopWaitForSignals() *WPA {
+	log.Log.Debug("StopWaitForSignals")
 	self.Connection.RemoveSignal(self.SignalChannel)
 	return self
 }

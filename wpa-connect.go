@@ -18,7 +18,7 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 	self.context.scanDone = make(chan bool)
 	self.context.connectDone = make(chan bool)
 	if wpa, err := wpa_dbus.NewWPA(); err == nil {
-		wpa.WaifForSignals(self.onSignal)
+		wpa.WaitForSignals(self.onSignal)
 		wpa.AddSignalsObserver()
 		if wpa.ReadInterface(self.NetInterface); wpa.Error == nil {
 			iface := wpa.Interface
@@ -74,7 +74,7 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 			e = wpa.Error
 		}
 		wpa.RemoveSignalsObserver()
-		wpa.StopWaifForSignals()
+		wpa.StopWaitForSignals()
 	} else {
 		e = err
 	}
