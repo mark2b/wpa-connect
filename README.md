@@ -5,7 +5,7 @@
 **wpa-connect** communicates with WPA supplicant over D-Bus (linux message bus system).
 
 
-This package was developed as part of IoT project in order to add Wi-Fi connectivity to headless Raspberry Pi like devices. No need to **connman** or **Network Manager** be installed. 
+This package was developed as part of IoT project in order to add Wi-Fi connectivity to headless Raspberry Pi like devices. No need for **connman** or **Network Manager** be installed. 
 
 
 ## Setup
@@ -20,7 +20,7 @@ Systemd service configuration file - **/etc/systemd/system/wpa_supplicant@wlan0.
 Description=WPA supplicant for %i
 
 [Service]
-ExecStart=/usr/sbin/wpa_supplicant -u -i%i -c/data/etc/wpa_supplicant.conf -Dwext
+ExecStart=/usr/sbin/wpa_supplicant -u -i%i -c/etc/wpa_supplicant.conf -Dwext
 
 [Install]
 WantedBy=multi-user.target
