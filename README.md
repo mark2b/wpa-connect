@@ -1,11 +1,11 @@
 # wpa-connect
-## Package provides API for connection Linux device to WiFi Network.
+## Package provides API for connection Linux device to Wi-Fi Network.
 
 
 **wpa-connect** communicates with WPA supplicant over D-Bus (linux message bus system).
 
 
-This package was developed as part of IoT project in order to add WiFi connectivity to headless Raspberry Pi like devices. No need to **connman** or **Network Manager** be installed. 
+This package was developed as part of IoT project in order to add Wi-Fi connectivity to headless Raspberry Pi like devices. No need to **connman** or **Network Manager** be installed. 
 
 
 ## Setup
@@ -37,7 +37,7 @@ Please see [godoc.org](http://godoc.org/github.com/mark2b/wpa-connect) for docum
 
 ## Examples
 
-### Connect to WiFi network
+### Connect to Wi-Fi network
 
  
 ```
@@ -49,7 +49,7 @@ if conn, err := wifi.ConnectManager.Connect(ssid, password, time.Second * 60); e
 	fmt.Println(err)
 }
 ```
-### Scan for WiFi networks
+### Scan for Wi-Fi networks
 
 ```golang
 import wifi "github.com/mark2b/wpa-connect"
