@@ -40,7 +40,7 @@ Please see [godoc.org](http://godoc.org/github.com/mark2b/wpa-connect) for docum
 ### Connect to Wi-Fi network
 
  
-```
+```golang
 import wifi "github.com/mark2b/wpa-connect"
 
 if conn, err := wifi.ConnectManager.Connect(ssid, password, time.Second * 60); err == nil {
