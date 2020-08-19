@@ -81,11 +81,27 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 	return
 }
 
+func (self *connectManager) Disconnect() (e error) {
+	if wpa, err := wpa_dbus.NewWPA(); err == nil {
+		if wpa.ReadInterface(self.NetInterface); wpa.Error == nil {
+			iface := wpa.Interface
+			if iface.RemoveAllNetworks(); iface.Error == nil {
+				e = nil
+			}
+		} else {
+			e = wpa.Error
+		}
+	} else {
+		e = err
+	}
+	return
+}
+
 func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.InterfaceWPA, password string) (e error) {
 	addNetworkArgs := map[string]dbus.Variant{
 		"ssid": dbus.MakeVariant(bss.SSID),
 		"psk":  dbus.MakeVariant(password)}
-	if iface.RemoveAllNetworks().AddNetwork(addNetworkArgs); iface.Error == nil {
+	if iface.AddNetwork(addNetworkArgs); iface.Error == nil {
 		network := iface.NewNetwork
 		self.context.phaseWaitForInterfaceConnected = true
 		go func() {
