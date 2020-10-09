@@ -1,7 +1,7 @@
 package main
 
 import (
-	wifi "github.com/mark2b/wpa-connect"
+	wifi "wpa-connect"
 )
 
 func main() {

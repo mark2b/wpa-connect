@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	wifi "github.com/mark2b/wpa-connect"
+	wifi "wpa-connect"
 	"time"
 )
 

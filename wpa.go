@@ -1,6 +1,6 @@
 package wpaconnect
 
-import "github.com/mark2b/wpa-connect/internal/log"
+import "wpa-connect/internal/log"
 
 func SetSilentMode() {
 	log.SetSilentMode()

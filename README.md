@@ -29,11 +29,11 @@ WantedBy=multi-user.target
 **On Project:**
 
 ```
-go get github.com/mark2b/wpa-connect
+go get wpa-connect
 ```
 
 ## Usage
-Please see [godoc.org](http://godoc.org/github.com/mark2b/wpa-connect) for documentation. (Not ready yet)
+Please see [godoc.org](http://godoc.org/wpa-connect) for documentation. (Not ready yet)
 
 ## Examples
 
@@ -41,7 +41,7 @@ Please see [godoc.org](http://godoc.org/github.com/mark2b/wpa-connect) for docum
 
  
 ```golang
-import wifi "github.com/mark2b/wpa-connect"
+import wifi "wpa-connect"
 
 if conn, err := wifi.ConnectManager.Connect(ssid, password, time.Second * 60); err == nil {
 	fmt.Println("Connected", conn.NetInterface, conn.SSID, conn.IP4.String(), conn.IP6.String())
@@ -52,7 +52,7 @@ if conn, err := wifi.ConnectManager.Connect(ssid, password, time.Second * 60); e
 ### Scan for Wi-Fi networks
 
 ```golang
-import wifi "github.com/mark2b/wpa-connect"
+import wifi "wpa-connect"
 
 if bssList, err := wifi.ScanManager.Scan(); err == nil {
 	for _, bss := range bssList {
