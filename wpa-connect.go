@@ -5,9 +5,9 @@ import (
 
 	"fmt"
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/internal/log"
-	"github.com/mark2b/wpa-connect/internal/wpa_cli"
-	"github.com/mark2b/wpa-connect/internal/wpa_dbus"
+	"wpa-connect/internal/log"
+	"wpa-connect/internal/wpa_cli"
+	"wpa-connect/internal/wpa_dbus"
 	"net"
 	"time"
 )

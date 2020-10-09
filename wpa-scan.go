@@ -2,8 +2,8 @@ package wpaconnect
 
 import (
 	"github.com/godbus/dbus"
-	"github.com/mark2b/wpa-connect/internal/log"
-	"github.com/mark2b/wpa-connect/internal/wpa_dbus"
+	"wpa-connect/internal/log"
+	"wpa-connect/internal/wpa_dbus"
 )
 
 func (self *scanManager) Scan() (bssList []BSS, e error) {
