@@ -2,14 +2,14 @@ package wpaconnect
 
 import (
 	"errors"
+	"wpa-connect/internal/wpa_cli"
 
 	"fmt"
 	"github.com/godbus/dbus"
-	"wpa-connect/internal/log"
-	"wpa-connect/internal/wpa_cli"
-	"wpa-connect/internal/wpa_dbus"
 	"net"
 	"time"
+	"wpa-connect/internal/log"
+	"wpa-connect/internal/wpa_dbus"
 )
 
 func (self *connectManager) Connect(ssid string, password string, timeout time.Duration) (connectionInfo ConnectionInfo, e error) {
@@ -30,17 +30,24 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 				self.context.error = errors.New("timeout")
 			}()
 			if iface.Scan(); iface.Error == nil {
-				// Wait for scan_example done
+				// Wait for scan done
 				if <-self.context.scanDone; self.context.error == nil {
 					if iface.ReadBSSList(); iface.Error == nil {
-						// Look for target BSS
-						var bssFound = false
+						bssMap := make(map[string]wpa_dbus.BSSWPA, 0)
 						for _, bss := range iface.BSSs {
 							if bss.ReadSSID(); bss.Error == nil {
-								if ssid == bss.SSID {
-									bssFound = true
+								bssMap[bss.SSID] = bss
+								log.Log.Debug(bss.SSID, bss.BSSID)
+							} else {
+								e = err
+								break
+							}
+						}
+						if e == nil {
+							if bss, exists := bssMap[ssid]; exists {
+								if bss.ReadSSID(); bss.Error == nil {
 									if err := self.connectToBSS(&bss, iface, password); err == nil {
-										// Wait for connection
+										// Connected, save configuration
 										cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
 										if err := cli.SaveConfig(); err == nil {
 											connectionInfo = ConnectionInfo{NetInterface: self.NetInterface, SSID: ssid,
@@ -51,14 +58,12 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 									} else {
 										e = err
 									}
-									break
+								} else {
+									e = bss.Error
 								}
 							} else {
-								e = bss.Error
+								e = errors.New("ssid_not_found")
 							}
-						}
-						if !bssFound {
-							e = errors.New("ssid_not_found")
 						}
 					} else {
 						e = iface.Error
@@ -190,8 +195,8 @@ func (self *connectManager) processInterfacePropertiesChanged(wpa *wpa_dbus.WPA,
 						self.context.connectDone <- true
 						return
 					} else if state == "disconnected" {
-						self.context.phaseWaitForInterfaceConnected = false
-						self.context.connectDone <- false
+						//self.context.phaseWaitForInterfaceConnected = false
+						//self.context.connectDone <- false
 						return
 					}
 				}
