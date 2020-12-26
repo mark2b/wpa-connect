@@ -1,4 +1,4 @@
-module wpa-connect	
+module github.com/mark2b/wpa-connect
 
 go 1.15
 
