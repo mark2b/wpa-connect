@@ -2,14 +2,14 @@ package wpaconnect
 
 import (
 	"errors"
-	"wpa-connect/internal/wpa_cli"
+	"github.com/mark2b/wpa-connect/internal/wpa_cli"
 
 	"fmt"
 	"github.com/godbus/dbus"
 	"net"
 	"time"
-	"wpa-connect/internal/log"
-	"wpa-connect/internal/wpa_dbus"
+	"github.com/mark2b/wpa-connect/internal/log"
+	"github.com/mark2b/wpa-connect/internal/wpa_dbus"
 )
 
 func (self *connectManager) Connect(ssid string, password string, timeout time.Duration) (connectionInfo ConnectionInfo, e error) {
