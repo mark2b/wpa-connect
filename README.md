@@ -29,7 +29,7 @@ WantedBy=multi-user.target
 **On Project:**
 
 ```
-go get wpa-connect
+go get github.com/mark2b/wpa-connect
 ```
 
 ## Usage
