@@ -26,6 +26,14 @@ ExecStart=/usr/sbin/wpa_supplicant -u -i%i -c/etc/wpa_supplicant.conf -Dwext
 WantedBy=multi-user.target
 ```
 
+**On Raspberry PI OS (Debian Buster):**
+
+**Raspbery PI OS** (formerely known as Raspbian) uses [dhcpd-run-hooks](https://manpages.debian.org/stretch/dhcpcd5/dhcpcd-run-hooks.8.en.html) to setup and invoke the wpa_supplicant daemon. 
+
+1. Disable the systemd managed wpa_supplicant located under `/etc/systemd/dbus-fi.w1.wpa_supplicant1.service` by running `sudo systemctl disable wpa_supplicant`
+1. Modify the existing wpa_supplicant dhcpd-run-hook available under `/lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant` by adding the `-u` flag to the invocation of the wpa_supplicant daemon in the `wpa_supplicant_start()` function. 
+1. Alternatively run `sudo sed -i 's/wpa_supplicant -B/wpa_supplicant -u -B/g' /lib/dhcpcd/dhcpcd-hooks/10-wpa_supplicant` to modify the hook in place.
+
 **On Project:**
 
 ```
