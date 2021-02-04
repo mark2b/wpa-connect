@@ -209,6 +209,10 @@ func (self *connectContext) hasIP() bool {
 	return self.ip4 != nil && self.ip6 != nil
 }
 
+func NewConnectManager(netInterface string) *connectManager {
+	return &connectManager{NetInterface: netInterface}
+}
+
 type ConnectionInfo struct {
 	NetInterface string
 	SSID         string

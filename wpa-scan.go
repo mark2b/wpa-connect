@@ -63,6 +63,10 @@ func (self *scanManager) processScanDone(wpa *wpa_dbus.WPA, signal *dbus.Signal)
 	}
 }
 
+func NewScanManager(netInterface string) *scanManager {
+	return &scanManager{NetInterface: netInterface}
+}
+
 type BSS struct {
 	BSSID     string
 	SSID      string
