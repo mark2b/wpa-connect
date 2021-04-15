@@ -6,10 +6,10 @@ import (
 
 	"fmt"
 	"github.com/godbus/dbus"
-	"net"
-	"time"
 	"github.com/mark2b/wpa-connect/internal/log"
 	"github.com/mark2b/wpa-connect/internal/wpa_dbus"
+	"net"
+	"time"
 )
 
 func (self *connectManager) Connect(ssid string, password string, timeout time.Duration) (connectionInfo ConnectionInfo, e error) {
@@ -44,25 +44,20 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 							}
 						}
 						if e == nil {
-							if bss, exists := bssMap[ssid]; exists {
-								if bss.ReadSSID(); bss.Error == nil {
-									if err := self.connectToBSS(&bss, iface, password); err == nil {
-										// Connected, save configuration
-										cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
-										if err := cli.SaveConfig(); err == nil {
-											connectionInfo = ConnectionInfo{NetInterface: self.NetInterface, SSID: ssid,
-												IP4: self.context.ip4, IP6: self.context.ip6}
-										} else {
-											e = err
-										}
-									} else {
-										e = err
-									}
+							_, exists := bssMap[ssid]
+							if err := self.connectToBSS(&wpa_dbus.BSSWPA{
+								SSID: ssid,
+							}, iface, password, !exists); err == nil {
+								// Connected, save configuration
+								cli := wpa_cli.WPACli{NetInterface: self.NetInterface}
+								if err := cli.SaveConfig(); err == nil {
+									connectionInfo = ConnectionInfo{NetInterface: self.NetInterface, SSID: ssid,
+										IP4: self.context.ip4, IP6: self.context.ip6}
 								} else {
-									e = bss.Error
+									e = err
 								}
 							} else {
-								e = errors.New("ssid_not_found")
+								e = err
 							}
 						}
 					} else {
@@ -86,10 +81,18 @@ func (self *connectManager) Connect(ssid string, password string, timeout time.D
 	return
 }
 
-func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.InterfaceWPA, password string) (e error) {
+func (self *connectManager) connectToBSS(bss *wpa_dbus.BSSWPA, iface *wpa_dbus.InterfaceWPA, password string, isHidden bool) (e error) {
 	addNetworkArgs := map[string]dbus.Variant{
 		"ssid": dbus.MakeVariant(bss.SSID),
-		"psk":  dbus.MakeVariant(password)}
+	}
+	if isHidden {
+		addNetworkArgs["scan_ssid"] = dbus.MakeVariant(1)
+	}
+	if password == "" {
+		addNetworkArgs["key_mgmt"] = dbus.MakeVariant("NONE")
+	} else {
+		addNetworkArgs["psk"] = dbus.MakeVariant(password)
+	}
 	if iface.RemoveAllNetworks().AddNetwork(addNetworkArgs); iface.Error == nil {
 		network := iface.NewNetwork
 		self.context.phaseWaitForInterfaceConnected = true
