@@ -3,8 +3,8 @@ package wpa_dbus
 import (
 	"fmt"
 
-	"github.com/mark2b/wpa-connect/internal/log"
 	"github.com/godbus/dbus"
+	"github.com/mark2b/wpa-connect/internal/log"
 )
 
 type InterfaceWPA struct {
@@ -209,6 +209,30 @@ func (self *InterfaceWPA) RemoveSignalsObserver() *InterfaceWPA {
 	if call := self.WPA.Connection.BusObject().Call("org.freedesktop.DBus.RemoveMatch", 0, match); call.Err == nil {
 	} else {
 		self.Error = call.Err
+	}
+	return self
+}
+
+func (self *InterfaceWPA) ReadCurrentBSS() *InterfaceWPA {
+	if self.Error == nil {
+		if value, err := self.WPA.get("fi.w1.wpa_supplicant1.Interface.CurrentBSS", self.Object); err == nil {
+			bssObjectPath := value.(dbus.ObjectPath)
+			self.CurrentBSS = &BSSWPA{Interface: self, Object: self.WPA.Connection.Object("fi.w1.wpa_supplicant1", bssObjectPath)}
+		} else {
+			self.Error = err
+		}
+	}
+	return self
+}
+
+func (self *InterfaceWPA) ReadCurrentNetwork() *InterfaceWPA {
+	if self.Error == nil {
+		if network, err := self.WPA.get("fi.w1.wpa_supplicant1.Interface.CurrentNetwork", self.Object); err == nil {
+			networkObjectPath := network.(dbus.ObjectPath)
+			self.CurrentNetwork = &NetworkWPA{Interface: self, Object: self.WPA.Connection.Object("fi.w1.wpa_supplicant1", networkObjectPath)}
+		} else {
+			self.Error = err
+		}
 	}
 	return self
 }
