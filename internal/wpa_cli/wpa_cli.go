@@ -12,9 +12,5 @@ type WPACli struct {
 func (self *WPACli) SaveConfig() (e error) {
 	cmd := exec.Command("wpa_cli", fmt.Sprintf("-i%s", self.NetInterface), "save_config")
 
-	if err := cmd.Start(); err == nil {
-	} else {
-		e = err
-	}
-	return
+	return cmd.Start()
 }
